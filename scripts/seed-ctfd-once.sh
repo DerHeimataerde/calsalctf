@@ -2,24 +2,18 @@
 set -euo pipefail
 
 CTFD_URL="${CTFD_URL:-http://127.0.0.1:8000}"
-TOKEN_FILE="${TOKEN_FILE:-/data/ctfd_token}"
-SEEDED_MARK="${SEEDED_MARK:-/data/.seeded}"
 SEED_JS="${SEED_JS:-/app/seed-ctfd.js}"
-
-# If already seeded, exit successfully
-if [ -f "$SEEDED_MARK" ]; then
-  echo "[seeder] already seeded ($SEEDED_MARK exists) — skipping."
-  exit 0
-fi
 
 echo "[seeder] waiting for CTFd to start at ${CTFD_URL} …"
 
-# Wait for CTFd HTTP to come up (try both modern/legacy endpoints)
+# Wait for CTFd HTTP to come up (try modern, legacy, and root)
+up=0
 for i in $(seq 1 120); do
   if curl -fsS -H 'Accept: application/json' "${CTFD_URL}/api/v1/configs" >/dev/null 2>&1 \
      || curl -fsS -H 'Accept: application/json' "${CTFD_URL}/api/v1/config"  >/dev/null 2>&1 \
      || curl -fsS "${CTFD_URL}/" >/dev/null 2>&1
   then
+    up=1
     echo "[seeder] CTFd HTTP is up."
     break
   fi
@@ -27,31 +21,47 @@ for i in $(seq 1 120); do
   sleep 1
 done
 
-# Wait for token created by your bootstrap plugin
-echo "[seeder] waiting for admin token at ${TOKEN_FILE} …"
-for i in $(seq 1 60); do
-  if [ -s "$TOKEN_FILE" ]; then
-    echo "[seeder] token file present."
-    break
-  fi
-  echo "[seeder] … token not yet available (${i})"
-  sleep 1
-done
-
-if [ ! -s "$TOKEN_FILE" ]; then
-  echo "[seeder] ERROR: token file ${TOKEN_FILE} not found or empty."
-  echo "         Ensure the bootstrap_token plugin is enabled and can write the token."
+if [ "$up" -ne 1 ]; then
+  echo "[seeder] ERROR: CTFd did not become ready in time."
   exit 1
 fi
 
-# Run the seeder (Node 18+). Pass URL explicitly so it is robust to changes.
-echo "[seeder] running node ${SEED_JS}"
-export CTFD_URL="${CTFD_URL}"
-node "${SEED_JS}" && {
-  touch "${SEEDED_MARK}"
-  echo "[seeder] done. Created ${SEEDED_MARK}"
-  exit 0
-}
+# Find the admin token from the bootstrap plugin
+# Prefer /tmp (no disk on free tier), fallback to /data if present
+TOKEN_FILE_ENV="${TOKEN_FILE:-}"
+TOKEN_FILE=""
+if [ -n "$TOKEN_FILE_ENV" ] && [ -s "$TOKEN_FILE_ENV" ]; then
+  TOKEN_FILE="$TOKEN_FILE_ENV"
+else
+  for try in /tmp/ctfd_token /data/ctfd_token; do
+    if [ -s "$try" ]; then TOKEN_FILE="$try"; break; fi
+  done
+fi
 
-echo "[seeder] ERROR: seeding failed."
-exit 1
+if [ -z "$TOKEN_FILE" ]; then
+  echo "[seeder] waiting for admin token (/tmp/ctfd_token or /data/ctfd_token) …"
+  for i in $(seq 1 60); do
+    for try in /tmp/ctfd_token /data/ctfd_token; do
+      if [ -s "$try" ]; then TOKEN_FILE="$try"; break; fi
+    done
+    [ -n "$TOKEN_FILE" ] && break
+    echo "[seeder] … token not yet available (${i})"
+    sleep 1
+  done
+fi
+
+if [ -z "$TOKEN_FILE" ] || [ ! -s "$TOKEN_FILE" ]; then
+  echo "[seeder] ERROR: token file not found or empty."
+  echo "         Ensure the bootstrap_token plugin is enabled and writing /tmp/ctfd_token (or /data/ctfd_token)."
+  exit 1
+fi
+
+echo "[seeder] using token file: $TOKEN_FILE"
+
+# Run the seeder (Node 18+). The seeder itself is idempotent using CTFd config.
+export CTFD_URL
+echo "[seeder] running node ${SEED_JS}"
+node "${SEED_JS}"
+
+echo "[seeder] done."
+exit 0
