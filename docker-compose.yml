@@ -1,0 +1,25 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: node-ctfd-oneimage
+    container_name: myctf
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    volumes:
+      - ctfd_data:/data
+      # (optional) persist CTFd uploads if you start using them:
+      # - ctfd_uploads:/opt/ctfd/CTFd/uploads
+    environment:
+      # Seeder reads token from /data/ctfd_token automatically; no manual token needed
+      CTFD_BASE: "http://127.0.0.1:8080/ctf"
+      # Optional: override bootstrap admin creds on first run
+      BOOTSTRAP_ADMIN_EMAIL: "admin@example.org"
+      BOOTSTRAP_ADMIN_PASSWORD: "change_me"
+      BOOTSTRAP_ADMIN_NAME: "admin"
+
+volumes:
+  ctfd_data:
+  # ctfd_uploads:

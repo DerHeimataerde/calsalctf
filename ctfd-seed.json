@@ -1,0 +1,81 @@
+[
+  {
+    "name": "White Rabbit — Step 1",
+    "category": "White Rabbit",
+    "description": "What input string reveals the hidden prompt? Format: flag{hiddenstring}",
+    "value": 50,
+    "type": "standard",
+    "state": "visible",
+    "flags": [{ "type": "static", "content": "flag{followthewhiterabbit}" }]
+  },
+  {
+    "name": "White Rabbit — Step 2",
+    "category": "White Rabbit",
+    "description": "What was the response to the riddle? Format: flag{hidden phrase}",
+    "value": 75,
+    "type": "standard",
+    "state": "visible",
+    "requires": "White Rabbit — Step 1",
+    "flags": [{ "type": "static", "content": "flag{first step}" }]
+  },
+  {
+    "name": "White Rabbit — Step 3",
+    "category": "White Rabbit",
+    "description": "What is the archive password? Format: flag{hiddenstring}",
+    "value": 100,
+    "type": "standard",
+    "state": "visible",
+    "requires": "White Rabbit — Step 2",
+    "flags": [{ "type": "static", "content": "flag{madhatter}" }]
+  },
+  {
+    "name": "White Rabbit — Step 4",
+    "category": "White Rabbit",
+    "description": "What is the full name of the hidden file? Format: flag{hidden.file}",
+    "value": 150,
+    "type": "standard",
+    "state": "visible",
+    "requires": "White Rabbit — Step 3",
+    "flags": [{ "type": "static", "content": "flag{____-____-____.html.mp3}" }]
+  },
+  {
+    "name": "White Rabbit — Step 5",
+    "category": "White Rabbit",
+    "description": "What is the name of the revealed page? Format: flag{page-name.html}",
+    "value": 200,
+    "type": "standard",
+    "state": "visible",
+    "requires": "White Rabbit — Step 4",
+    "flags": [{ "type": "static", "content": "flag{feed-your-head.html}" }]
+  },
+  {
+    "name": "White Rabbit — Step 6",
+    "category": "White Rabbit",
+    "description": "What is the hidden message on the page? Format flag{hiddenstring}",
+    "value": 250,
+    "type": "standard",
+    "state": "visible",
+    "requires": "White Rabbit — Step 5",
+    "flags": [{ "type": "static", "content": "flag{/pixels.txt}" }]
+  },
+  {
+    "name": "White Rabbit — Step 7",
+    "category": "White Rabbit",
+    "description": "Can you extract the hidden information? Format: flag{hiddenstring}",
+    "value": 300,
+    "type": "standard",
+    "state": "visible",
+    "requires": "White Rabbit — Step 6",
+    "flags": [{ "type": "static", "content": "flag{head.html}" }]
+  },
+  {
+    "name": "White Rabbit — Step 8",
+    "category": "White Rabbit",
+    "description": "What do you hear? Format: flag{HIDDENSTRING}",
+    "value": 400,
+    "type": "standard",
+    "state": "visible",
+    "requires": "White Rabbit — Step 7",
+    "flags": [{ "type": "static", "content": "flag{WEREALLMADHERE}" }]
+  }
+]

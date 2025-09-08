@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: cal-sal-ctf
+    env: docker
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    plan: starter          # change to 'standard' if you need more CPU/RAM
+    region: oregon         # pick your closest region
+
+    # Render expects your app to listen on $PORT (your nginx.conf uses ${PORT})
+    healthCheckPath: /ctf/   # CTFd home works well as a health endpoint
+
+    # Persistent storage for SQLite DB, uploads, seed markers, token, etc.
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 5
+
+    envVars:
+      # CTFd basics — keep secrets OUT of the image
+      - key: SECRET_KEY
+        generateValue: true
+      - key: REVERSE_PROXY
+        value: "True"
+      - key: TRUSTED_HOSTS
+        value: cal-sal-ctf.onrender.com   # update to your Render hostname
+      - key: DATABASE_URL
+        value: sqlite:////data/ctfd.db
+      - key: UPLOAD_FOLDER
+        value: /data/uploads
+
+      # Optional: turn on debug logs while iterating
+      # - key: LOG_LEVEL
+      #   value: debug

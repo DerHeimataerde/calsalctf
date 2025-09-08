@@ -1,0 +1,5 @@
+pixelcoords_by_rgb(hex_to_rgb(ascii_to_hex(string))):{
+    (1713, 1347),
+    (1347, 127),
+    (1971, 719),
+    (1204, 447)}
